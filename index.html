@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field Monitor | Agriculture Node</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body><main class="shell">
+
+<header class="top">
+  <div class="brand">
+    <div class="mark">⌁</div>
+    <div><div class="eyebrow">Field systems · Phase I</div><h1>Agriculture Node Monitor</h1></div>
+  </div>
+  <div class="topright">
+    <div class="status" id="statusChip"><span class="dot"></span><span id="statusText">CONNECTING…</span></div>
+    <button class="btn" id="reset">Clear view</button>
+    <button class="btn primary" id="generate">Generate reading</button>
+  </div>
+</header>
+
+<div class="notice" id="notice">Checking for backend…</div>
+
+<div class="subhead">
+  <div>
+    <h2>Latest field readings</h2>
+    <p>Node: <span id="nodeLabel">FIELD-01</span> <select id="nodeSelect" hidden></select>
+      <span style="padding:0 5px">·</span> Reporting interval: <span id="intervalLabel">15</span> min</p>
+  </div>
+  <p id="updated">Waiting for first reading</p>
+</div>
+
+<section class="grid">
+  <div class="metric"><div class="metric-head"><span>Soil moisture</span><span class="mini-icon">◉</span></div><div class="number"><span id="moist">—</span> <span class="unit">%</span></div><div class="metric-foot">Capacitive probe · proposed</div></div>
+  <div class="metric"><div class="metric-head"><span>Soil temperature</span><span class="mini-icon">♨</span></div><div class="number"><span id="soilT">—</span> <span class="unit">°C</span></div><div class="metric-foot">DS18B20 · proposed</div></div>
+  <div class="metric"><div class="metric-head"><span>Air temperature</span><span class="mini-icon">♨</span></div><div class="number"><span id="airT">—</span> <span class="unit">°C</span></div><div class="metric-foot">BME280 · proposed</div></div>
+  <div class="metric"><div class="metric-head"><span>Relative humidity</span><span class="mini-icon">◌</span></div><div class="number"><span id="rh">—</span> <span class="unit">%</span></div><div class="metric-foot">BME280 · proposed</div></div>
+  <div class="metric"><div class="metric-head"><span>Atmospheric pressure</span><span class="mini-icon">⌁</span></div><div class="number"><span id="pressure">—</span> <span class="unit">hPa</span></div><div class="metric-foot">BME280 · proposed</div></div>
+  <div class="metric"><div class="metric-head"><span>Light intensity</span><span class="mini-icon">☼</span></div><div class="number"><span id="lux">—</span> <span class="unit">lux</span></div><div class="metric-foot">BH1750 · proposed</div></div>
+  <div class="metric"><div class="metric-head"><span>Node battery</span><span class="mini-icon">▰</span></div><div class="number"><span id="battery">—</span> <span class="unit">V</span></div><div class="metric-foot" id="batteryNote">Voltage reported by node</div></div>
+  <div class="metric"><div class="metric-head"><span id="countLabel">Packets created</span><span class="mini-icon">⇧</span></div><div class="number" id="count">0</div><div class="metric-foot" id="countNote">Local simulation counter</div></div>
+</section>
+
+<div class="subhead"><div><h2>Recent trend</h2><p id="trendNote">Values from the last 8 readings</p></div><span class="tag">LAST 8 READINGS</span></div>
+<section class="middle">
+  <div class="panel">
+    <div class="panel-title"><h3>Moisture and air temperature</h3><span class="tag" id="chartTag">SIMULATED</span></div>
+    <div class="chart-wrap">
+      <svg id="chart" viewBox="0 0 600 190" role="img" aria-label="Trend chart">
+        <line class="gridline" x1="42" y1="25" x2="580" y2="25"/><line class="gridline" x1="42" y1="65" x2="580" y2="65"/>
+        <line class="gridline" x1="42" y1="105" x2="580" y2="105"/><line class="gridline" x1="42" y1="145" x2="580" y2="145"/>
+        <text class="axis" x="5" y="28">80%</text><text class="axis" x="5" y="68">60%</text>
+        <text class="axis" x="5" y="108">40%</text><text class="axis" x="5" y="148">20%</text>
+        <path id="moistLine" class="lineA" d=""/><path id="tempLine" class="lineB" d=""/>
+        <text class="axis" x="42" y="178">Oldest</text><text class="axis" x="545" y="178">Latest</text>
+      </svg>
+    </div>
+    <div class="legend"><span><i class="swatch"></i>Soil moisture</span><span><i class="swatch blue"></i>Air temperature (scaled for display)</span></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><h3>Energy status</h3><span class="tag">MODEL ONLY</span></div>
+    <div class="power-row"><div><div class="power-label">Battery voltage</div><div class="power-value"><span id="powerV">—</span> V</div></div><div class="power-icon">▰</div></div>
+    <div class="power-row"><div><div class="power-label">Estimated state indicator</div><div class="power-value" id="state">Awaiting data</div></div><div class="power-icon">◉</div></div>
+    <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+    <p class="muted" style="font-size:11px;line-height:1.5;margin:11px 0 0">The bar is a simple illustrative voltage indicator, not a calibrated battery state-of-charge estimate. Solar input and power use are not measured.</p>
+  </div>
+</section>
+
+<div class="subhead"><div><h2>Gateway activity</h2><p id="gwNote">Example payload handling</p></div><span class="tag" id="packetTag">0 EVENTS</span></div>
+<section class="lower">
+  <div class="panel">
+    <div class="panel-title"><h3>Packet log</h3><span><a class="btn" id="csv" href="#" hidden>Download CSV</a><button class="btn" id="copy">Copy latest JSON</button></span></div>
+    <div class="table-scroll"><table><thead><tr><th>Sequence</th><th>Node</th><th>Event</th><th>Time</th></tr></thead>
+      <tbody id="logBody"><tr><td colspan="4" class="muted">No events yet. Generate a reading to begin.</td></tr></tbody></table></div>
+    <div style="margin-top:13px">
+      <div class="panel-title"><h3 style="font-size:12px">Latest packet payload</h3><span class="tag">JSON</span></div>
+      <pre id="json" class="jsonbox">No payload generated yet.</pre>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><h3>Proposed node sequence</h3><span class="tag">DESIGN FLOW</span></div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div><strong>Wake controller</strong><small>ESP32 wakes from low-power sleep on the configured timer.</small></div></div>
+      <div class="step"><div class="step-num">2</div><div><strong>Read sensors</strong><small>Acquire six agricultural parameters and battery voltage.</small></div></div>
+      <div class="step"><div class="step-num">3</div><div><strong>Build data packet</strong><small>Add node ID, sequence number and timestamp.</small></div></div>
+      <div class="step"><div class="step-num">4</div><div><strong>Transmit by LoRa P2P</strong><small>Planned radio link; must be validated on real hardware.</small></div></div>
+      <div class="step"><div class="step-num">5</div><div><strong>Gateway forwards to backend</strong><small>Gateway checks the packet and POSTs it to the API; the dashboard updates live.</small></div></div>
+      <div class="step"><div class="step-num">6</div><div><strong>Return to sleep</strong><small>Planned energy-saving behaviour; current consumption remains unmeasured.</small></div></div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div><strong>Project:</strong> Design, Development and Performance Evaluation of an Energy-Aware, Solar-Powered LoRa Sensor Node for Agricultural Monitoring.</div>
+  <div>Phase-I presentation aid · simulated values are labelled · hardware validation pending</div>
+</footer>
+</main>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body></html>
